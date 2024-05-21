@@ -1,5 +1,4 @@
 // Hello I'm Nekan
-//
 #include <bits/stdc++.h>
 #define Nekan "test"
 #define fi first

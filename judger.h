@@ -2,7 +2,7 @@
 #include <string>
 using namespace std;
 
-void judge(int problem_id, string dir_code, string &exit_code);
+void judge(int task_id, int problem_id, string dir_code, string &exit_code, string &message);
 
 // dir_code: /Submit/probA_Accept.cpp
 // ProbA: probA_AC.cpp, probA_WA.cpp, probA_TLE.cpp
