@@ -7,15 +7,13 @@
 #include <queue> // for std::queue
 #include <functional> // for std::ref
 #include <condition_variable> // for condition_variable
+#include <random>
+#include "judger.h"
 
 using namespace std;
 
-// The print function represents a task that takes a string reference as input and prints it.
-void print(string &s) {
-    cout << "=====" << s << " is running on thread " << this_thread::get_id() << endl; 
-    // Simulate some work 
-    this_thread::sleep_for(chrono::milliseconds(100));
-}
+// judge is a task that takes a problem_id, a dir_code, and a reference to an exit_code
+// void judge(int problem_id, string dir_code, string &exit_code);
 
 class ThreadPool {
     private:
@@ -129,16 +127,28 @@ int main(int argc, char* argv[]) {
     int num_threads = stoi(argv[2]);
 
     // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
-    vector<string> v;
+    struct TaskStruct
+    {
+        int problem_id;
+        string dir_code;
+        string exit_code;
+    };
+    
+    vector<TaskStruct> v;
     for (int i = 1; i <= num_tasks; i++) {
-        v.push_back("Task " + to_string(i));
+        // random problem id from 1 to 10
+        TaskStruct task;
+        task.problem_id = rand() % 10 + 1;
+        task.dir_code = "/Submit/Submit" + to_string(i) + ".cpp";
+        v.push_back(task);
     }
 
     // Create a thread pool with num_threads threads
     ThreadPool pool(num_threads);
     for (int i = 0; i < num_tasks; i++) {
-        cout << "Adding task " << v[i] << " to the pool" << endl;
-        pool.add_task(bind(print, ref(v[i])));
+        // Add a task to the pool
+        cout << "Add task" << i << " to the pool" << endl;
+        pool.add_task([i, &v] { judge(v[i].problem_id, v[i].dir_code, v[i].exit_code); });
 
         // Wait for a while before adding the next task
         this_thread::sleep_for(chrono::milliseconds(50));
@@ -146,6 +156,13 @@ int main(int argc, char* argv[]) {
 
     // Give some time for all tasks to finish before the main function exits.
     this_thread::sleep_for(chrono::seconds(1));
+    
+    // Print the exit code of each task
+    for (int i = 0; i < num_tasks; i++) {
+        cout << "Task " << i << " exit code: " << v[i].exit_code << endl;
+    }
 
     return 0;
 }
+
+// how to compile: g++ -std=c++11 -pthread main.cpp judger.cpp -o main
