@@ -9,6 +9,7 @@
 #include <string>             // for std::string
 #include <thread>             // for multithreading
 #include <vector>             // for std::vector
+#include <fstream>            // for read request file
 
 using namespace std;
 
@@ -135,20 +136,42 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int num_tasks = stoi(argv[1]);
+    //int num_tasks = stoi(argv[1]);
+    ifstream request_file;
+    request_file.open(string(argv[1]) + ".txt", ios::in);
     int num_threads = stoi(argv[2]);
 
-    // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
-    vector<string> v;
-    for (int i = 1; i <= num_tasks; i++) {
-        v.push_back("Task " + to_string(i));
-    }
+    int num_tasks;
+    request_file >> num_tasks;
 
-    string dir_code = "../Submit/probA_AC.cpp";
+    // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
+    // vector<string> v;
+    // for (int i = 1; i <= num_tasks; i++) {
+    //     v.push_back("Task " + to_string(i));
+    // }
+
+    //string dir_code = "../Submit/probA_AC.cpp";
     // Create a thread pool with num_threads threads
     ThreadPool pool(num_threads);
+    int time = 0;
     for (int i = 0; i < num_tasks; i++) {
-        cout << "Adding task " << v[i] << " to the pool" << endl;
+        // sleep until new submit
+        int time_arrive;
+        request_file >> time_arrive;
+        this_thread::sleep_for(chrono::microseconds(time_arrive - time));
+        time = time_arrive;
+
+        // problem of submit
+        string problem;
+        request_file >> problem;
+        problem = "../problem/" + problem;
+
+        // code directory of submit
+        string dir_code;
+        request_file >> dir_code;
+        dir_code = "../Submit/" + dir_code + ".cpp";
+
+        cout << "Adding task " << problem << " for code " << dir_code << " to the pool at time " << time << endl;
 
         string exit_code, message;
         //judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code, message)
