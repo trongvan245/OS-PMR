@@ -1,4 +1,5 @@
 // Hello I'm Nekan
+//
 #include <bits/stdc++.h>
 #define Nekan "test"
 #define fi first
@@ -17,9 +18,9 @@ const long long mod = 1e9 + 7; // 998244353;
 using namespace std;
 
 void xuly() {
-    for (long long i = 1; i <= 1e3; ++i) {
-        cout << i << '\n';
-    }
+    int a, b;
+    cin >> a >> b;
+    cout << a * b << '\n';
 }
 
 int main() {
