@@ -130,6 +130,9 @@ class ThreadPool {
 };
 
 int main(int argc, char *argv[]) {
+    // get start time
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     // Usage: ./main <numOfString> <NumOfThreads>
     if (argc != 3) {
         cerr << "Usage: " << argv[0] << " <numOfString> <NumOfThreads>\n";
@@ -139,10 +142,11 @@ int main(int argc, char *argv[]) {
     //int num_tasks = stoi(argv[1]);
     ifstream request_file;
     request_file.open(string(argv[1]) + ".txt", ios::in);
-    int num_threads = stoi(argv[2]);
-
     int num_tasks;
     request_file >> num_tasks;
+
+    int num_threads;
+    request_file >> num_threads;
 
     // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
     // vector<string> v;
@@ -153,13 +157,13 @@ int main(int argc, char *argv[]) {
     //string dir_code = "../Submit/probA_AC.cpp";
     // Create a thread pool with num_threads threads
     ThreadPool pool(num_threads);
-    int time = 0;
     for (int i = 0; i < num_tasks; i++) {
         // sleep until new submit
         int time_arrive;
         request_file >> time_arrive;
-        this_thread::sleep_for(chrono::microseconds(time_arrive - time));
-        time = time_arrive;
+        auto current_time = std::chrono::high_resolution_clock::now();
+        int time_to_next_submit = time_arrive - chrono::duration_cast<chrono::microseconds>(current_time - start_time).count();
+        if (time_to_next_submit > 0) this_thread::sleep_for(chrono::milliseconds(time_to_next_submit));
 
         // problem of submit
         string problem;
