@@ -13,10 +13,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-const string PARTICIPANT_CODE = "Submit/probA_AC.cpp";
 const string EXECUTABLE = "participant_executable";
-const string INPUT_DIR = "problem/probA/testcases/";
-const string OUTPUT_DIR = "problem/probA/expected_outputs/";
 
 vector<string> getTestCases(const string &dir) {
     // For simplicity, hardcode the test case names
@@ -177,7 +174,7 @@ void judge(int task_id, int problem_id, string dir_code, string &exit_code,
 
     vector<string> test_cases = getTestCases(INPUT_DIR);
 
-    int i = 0;
+    int i = 0;  
     for (string test_case : test_cases) {
         string expected_output_file = "output";
         string exit_code;
