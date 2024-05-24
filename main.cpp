@@ -30,6 +30,7 @@ class ThreadPool {
   private:
     // A list of threads in the pool
     vector<thread> threads;
+    vector<bool> idle_thread;
 
     // A queue of tasks
     queue<function<void()>> tasks;
@@ -51,11 +52,14 @@ class ThreadPool {
     and then execute the task.
     */
     ThreadPool(int num_threads) : stop(false) {
+        // set up idle_thread
+        for (int i = 0; i < num_threads; ++i) idle_thread.push_back(true);
+
         // For each thread, create a lambda function that will keep the
         // thread running
         for (int i = 0; i < num_threads; i++) {
             // Create a thread, add to the list of threads
-            threads.emplace_back([this] {
+            threads.emplace_back([this, i] {
                 while (true) {
                     // Create a task variable, which has no task initially
                     function<void()> task;
@@ -79,12 +83,18 @@ class ThreadPool {
                         // Get the nearest task from the queue
                         task = move(this->tasks.front());
 
+                        // thread gets task => idle = false
+                        this->idle_thread[i] = false;
+
                         // Remove the task from the queue
                         this->tasks.pop();
                     }
 
                     // Execute the task
                     task();
+
+                    // finish task => idle = true
+                    this->idle_thread[i] = true;
                 }
             });
         }
@@ -108,6 +118,15 @@ class ThreadPool {
 
         // Notify one of the threads to execute the task
         condition.notify_one();
+    }
+
+    // check if finishing all task
+    bool finish_all_tasks() {
+        for (bool idle_i : idle_thread) {
+            if (idle_i == false) return false; 
+        }
+        if (tasks.empty()) return true;
+        return false;
     }
 
     /*
@@ -195,13 +214,19 @@ int main(int argc, char *argv[]) {
 
         // cout << "================== \n" << exit_code << '\n';
         // pool.add_task(bind(print, ref(v[i])));
-
-        // Wait for a while before adding the next task
-        this_thread::sleep_for(chrono::milliseconds(50));
     }
 
-    // Give some time for all tasks to finish before the main function exits.
-    this_thread::sleep_for(chrono::seconds(1));
-
+    // calculate total time to process all tasks
+    while (true) {
+        if (pool.finish_all_tasks()) {
+            auto end_time = std::chrono::high_resolution_clock::now();
+            int total_time = chrono::duration_cast<chrono::milliseconds>(
+                              end_time - start_time)
+                              .count();
+            cout << "the OJ system takes " << total_time << " milliseconds to finish\n";
+            break;
+        }
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
     return 0;
 }
