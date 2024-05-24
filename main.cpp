@@ -13,6 +13,10 @@
 
 using namespace std;
 
+std::string PARTICIPANT_CODE = "Submit/probA_AC.cpp";
+std::string INPUT_DIR = "problem/probA/testcases/";
+std::string OUTPUT_DIR = "problem/probA/expected_outputs/";
+
 // The print function represents a task that takes a string reference as input
 // and prints it.
 void print(string &s) {
@@ -134,8 +138,8 @@ int main(int argc, char *argv[]) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     // Usage: ./main <numOfString> <NumOfThreads>
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] << " <numOfString> <NumOfThreads>\n";
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <request.txt>\n";
         return 1;
     }
 
@@ -170,12 +174,16 @@ int main(int argc, char *argv[]) {
         request_file >> problem;
         problem = "../problem/" + problem;
 
+        INPUT_DIR = "problem/" + problem + "/testcases/";
+        OUTPUT_DIR = "problem/" + problem + "/expected_outputs/";
+
         // code directory of submit
         string dir_code;
         request_file >> dir_code;
+        PARTICIPANT_CODE = "Submit/" + dir_code + ".cpp";
         dir_code = "../Submit/" + dir_code + ".cpp";
 
-        cout << "Adding task " << problem << " for code " << dir_code << " to the pool at time " << time << endl;
+        // cout << "Adding task " << problem << " for code " << dir_code << " to the pool at time " << time << endl;
 
         string exit_code, message;
         //judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code, message)

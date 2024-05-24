@@ -1,4 +1,4 @@
 3 4
-100 probA probA_AC
+100 probB probB_AC
 300 probA probA_AC
 1000 probA probA_AC
