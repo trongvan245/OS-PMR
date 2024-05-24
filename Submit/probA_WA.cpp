@@ -20,7 +20,7 @@ using namespace std;
 void xuly() {
     int a, b;
     cin >> a >> b;
-    cout << a + b << '\n';
+    cout << a + b + 1 << '\n';
 }
 
 int main() {
