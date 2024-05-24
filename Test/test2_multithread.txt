@@ -1,0 +1,9 @@
+8 4
+0 probA probA_AC 
+0 probA probA_WA 
+1000 probA probA_TLE 
+1000 probA probA_AC 
+5000 probA probA_TLE 
+5000 probA probA_TLE 
+10000 probA probA_TLE 
+10000 probA probA_WA 

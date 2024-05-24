@@ -27,53 +27,54 @@ vector<string> getTestCases(const string &dir) {
     return testCases;
 }
 
-bool compile(int task_id) {
+bool compile(int task_id, string dir_code) {
     string compile_command =
-        "g++ " + PARTICIPANT_CODE + " -o " + EXECUTABLE + to_string(task_id);
+        "g++ " + dir_code + " -o " + EXECUTABLE + to_string(task_id);
     int result = system(compile_command.c_str());
     return result == 0;
 }
 
-void monitorExecution(thread &programThread, atomic<bool> &finished,
-                      int timeLimit) {
-    using namespace chrono;
+// void monitorExecution(thread &programThread, atomic<bool> &finished,
+//                       int timeLimit) {
+//     using namespace chrono;
 
-    // Start the timer
-    auto start = steady_clock::now();
+//     // Start the timer
+//     auto start = steady_clock::now();
 
-    while (true) {
-        if (finished) {
-            auto now = steady_clock::now();
-            auto elapsed = duration_cast<seconds>(now - start).count();
-            cout << "Program has finished in" << elapsed << '\n';
-            // Program finished within the time limit
-            return;
-        }
+//     while (true) {
+//         if (finished) {
+//             auto now = steady_clock::now();
+//             auto elapsed = duration_cast<seconds>(now - start).count();
+//             cout << "Program has finished in" << elapsed << '\n';
+//             // Program finished within the time limit
+//             return;
+//         }
 
-        // Check the elapsed time
-        auto now = steady_clock::now();
-        auto elapsed = duration_cast<seconds>(now - start).count();
+//         // Check the elapsed time
+//         auto now = steady_clock::now();
+//         auto elapsed = duration_cast<seconds>(now - start).count();
 
-        if (elapsed >= timeLimit) {
-            // Time limit exceeded, terminate the program
-            cout << elapsed << '\n';
-            cout << "Time limit exceeded. Terminating the program...\n";
-            if (programThread.joinable()) {
-                // Terminate the external process (this might need adjusting
-                // based on the OS)
-                // system(
-                //     "pkill -f 'your_program_name'"); // This is for Unix-like
-                //                                      // systems
-                // For Windows, you might use something like:
-                system("taskkill /F /IM simpleprob.exe");
-            }
-            return;
-        }
+//         if (elapsed >= timeLimit) {
+//             // Time limit exceeded, terminate the program
+//             cout << elapsed << '\n';
+//             cout << "Time limit exceeded. Terminating the program...\n";
+//             if (programThread.joinable()) {
+//                 // Terminate the external process (this might need adjusting
+//                 // based on the OS)
+//                 // system(
+//                 //     "pkill -f 'your_program_name'"); // This is for
+//                 Unix-like
+//                 //                                      // systems
+//                 // For Windows, you might use something like:
+//                 system("taskkill /F /IM simpleprob.exe");
+//             }
+//             return;
+//         }
 
-        // Sleep for a short period to avoid busy-waiting
-        this_thread::sleep_for(milliseconds(100));
-    }
-}
+//         // Sleep for a short period to avoid busy-waiting
+//         this_thread::sleep_for(milliseconds(100));
+//     }
+// }
 
 void runExternalProgram(const std::string &command,
                         std::atomic<bool> &finished) {
@@ -83,7 +84,7 @@ void runExternalProgram(const std::string &command,
 }
 
 void runTestCase(const string &input_file, const string &expected_output_file,
-                 string &exit_code, int task_id) {
+                 string &exit_code, int task_id, string INPUT_DIR) {
     // Construct the command to run the participant's executable with the given
 
     string par_output = "output" + to_string(task_id) + ".txt";
@@ -93,15 +94,15 @@ void runTestCase(const string &input_file, const string &expected_output_file,
                          input_file + " > " + par_output;
 
     // Execute the command
-    int run_result = system(run_command.c_str());
+    // int run_result = system(run_command.c_str());
     // cout << run_command << '\n';
 
     // Check if the execution was successful
-    if (run_result != 0) {
-        cerr << "Error running " << EXECUTABLE << endl;
-        exit_code = "CERR";
-        return; // Execution failed
-    }
+    // if (run_result != 0) {
+    //     cerr << "Error running " << EXECUTABLE << endl;
+    //     exit_code = "CERR";
+    //     return; // Execution failed
+    // }
 
     int TIME_LIMIT = 2;
 
@@ -128,9 +129,9 @@ void runTestCase(const string &input_file, const string &expected_output_file,
 
         if (elapsed >= TIME_LIMIT) {
             // Time limit exceeded, terminate the program
-            cerr << "Time limit exceeded. Terminating the program...\n";
+            // cerr << "Time limit exceeded. Terminating the program...\n";
             if (programThread.joinable()) {
-                system(("pkill -f '" + EXECUTABLE + "'")
+                system(("pkill -f '" + EXECUTABLE + to_string(task_id) + "'")
                            .c_str()); // For Unix-like systems
                 programThread.join();
             }
@@ -143,8 +144,8 @@ void runTestCase(const string &input_file, const string &expected_output_file,
     }
 
     // Construct the command to compare the output with the expected output
-    string diff_command = "diff -w " + par_output + " " + OUTPUT_DIR +
-                          expected_output_file + " > " + par_errorlog;
+    string diff_command = "diff -w " + par_output + " " + expected_output_file +
+                          " > " + par_errorlog;
 
     // cout << diff_command << '\n';
 
@@ -161,36 +162,48 @@ void runTestCase(const string &input_file, const string &expected_output_file,
  *      Compile Error - CERR
  */
 
-void judge(int task_id, int problem_id, string dir_code, string &exit_code,
-           string &message) {
-    if (!compile(task_id)) {
-        exit_code = "CERR";
-        message = "Compile error";
+void judge(int task_id, int problem_id, string dir_code, string INPUT_DIR,
+           string OUTPUT_DIR) {
+    if (!compile(task_id, dir_code)) {
+        // exit_code = "CERR";
+        // message = "Compile error";
+        cerr << "Compilation failed." << endl;
         return;
-        //  cerr << "Compilation failed." << endl;
-        // return 1;
     }
-    cout << "Judge ID: " << this_thread::get_id() << endl;
 
     vector<string> test_cases = getTestCases(INPUT_DIR);
 
-    int i = 0;  
+    string result = "AC";
+
     for (string test_case : test_cases) {
-        string expected_output_file = "output";
+        string expected_output_file = OUTPUT_DIR + "output";
         string exit_code;
         expected_output_file +=
             test_case[5]; // Assuming output files match input files
+        if (test_case[6] != '.')
+            expected_output_file += test_case[6];
         expected_output_file += ".out";
-        runTestCase(test_case, expected_output_file, exit_code, task_id);
+        runTestCase(test_case, expected_output_file, exit_code, task_id,
+                    INPUT_DIR);
 
-        cout << "Task " << task_id << ": " << ++i << ". test is " << exit_code
-             << '\n';
+        if (exit_code != "AC") {
+            result = exit_code;
+            break;
+        }
+        // cout << "Task " << task_id << ": " << ++i << ". test is " <<
+        // exit_code
+        //      << '\n';
         // if (runTestCase(test_case, expected_output_file, exit_code)) {
         //     cout << ++i << ". Passed TEST " << test_case << endl;
         // } else {
         //     cout << ++i << ". Failed TEST " << test_case << endl;
         // }
     }
+
+    cout << "\n===================================================\n";
+    cout << "Judge ID: " << this_thread::get_id() << endl;
+    cout << "Task " << task_id << ": " << result << '\n';
+    cout << "===================================================\n\n";
     // Cleanup
     string par_output = "output" + to_string(task_id) + ".txt";
     string par_errorlog = "errorlog" + to_string(task_id) + ".txt";

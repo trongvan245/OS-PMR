@@ -1,0 +1,20 @@
+16 4
+0 probA probA_AC 
+0 probA probA_TLE 
+0 probA probA_WA 
+0 probA probA_TLE 
+
+0 probB probB_AC 
+0 probB probB_TLE 
+0 probB probB_WA 
+0 probB probB_TLE 
+
+0 probC probC_AC 
+0 probC probC_TLE 
+0 probC probC_WA 
+0 probC probC_TLE 
+
+0 probD probD_AC 
+0 probD probD_TLE 
+0 probD probD_WA 
+0 probD probD_TLE 

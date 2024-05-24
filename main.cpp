@@ -144,16 +144,15 @@ int main(int argc, char *argv[]) {
     }
 
     // int num_tasks = stoi(argv[1]);
-    ifstream request_file
+    ifstream request_file;
     request_file.open("Test/" + string(argv[1]) + ".txt", ios::in);
     int num_threads, num_tasks;
     request_file >> num_tasks >> num_threads;
+
     // int num_threads = stoi(argv[2]);
 
-
-    // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
-    // vector<string> v;
-    // for (int i = 1; i <= num_tasks; i++) {
+    // Create a vector of strings represent for tasks: "Task 1", ...,
+    // "Task n" vector<string> v; for (int i = 1; i <= num_tasks; i++) {
     //     v.push_back("Task " + to_string(i));
     // }
 
@@ -165,9 +164,13 @@ int main(int argc, char *argv[]) {
         int time_arrive;
         request_file >> time_arrive;
         auto current_time = std::chrono::high_resolution_clock::now();
-        int time_to_next_submit = time_arrive - chrono::duration_cast<chrono::microseconds>(current_time - start_time).count();
-        if (time_to_next_submit > 0) this_thread::sleep_for(chrono::milliseconds(time_to_next_submit));
-      
+        int time_to_next_submit =
+            time_arrive - chrono::duration_cast<chrono::milliseconds>(
+                              current_time - start_time)
+                              .count();
+        if (time_to_next_submit > 0)
+            this_thread::sleep_for(chrono::milliseconds(time_to_next_submit));
+
         // problem of submit
         string problem;
         request_file >> problem;
@@ -180,15 +183,15 @@ int main(int argc, char *argv[]) {
         string dir_code;
         request_file >> dir_code;
         PARTICIPANT_CODE = "Submit/" + dir_code + ".cpp";
-        dir_code = "../Submit/" + dir_code + ".cpp";
+        dir_code = "Submit/" + dir_code + ".cpp";
 
         cout << "Adding task " << problem << " for code " << dir_code
-             << " to the pool at time " << time << endl;
+             << " to the pool at time " << time_arrive << endl;
 
         string exit_code, message;
         // judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code,
         // message)
-        pool.add_task(bind(judge, i, i, dir_code, exit_code, message));
+        pool.add_task(bind(judge, i, i, dir_code, INPUT_DIR, OUTPUT_DIR));
 
         // cout << "================== \n" << exit_code << '\n';
         // pool.add_task(bind(print, ref(v[i])));
