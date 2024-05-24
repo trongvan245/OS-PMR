@@ -2,6 +2,7 @@
 
 #include <chrono>             // for time measurement
 #include <condition_variable> // for condition_variable
+#include <fstream>            // for read request file
 #include <functional>         // for std::ref
 #include <iostream>           // for std::cout, std::cerr
 #include <mutex>              // for std::mutex
@@ -9,7 +10,6 @@
 #include <string>             // for std::string
 #include <thread>             // for multithreading
 #include <vector>             // for std::vector
-#include <fstream>            // for read request file
 
 using namespace std;
 
@@ -131,18 +131,21 @@ class ThreadPool {
 
 int main(int argc, char *argv[]) {
     // Usage: ./main <numOfString> <NumOfThreads>
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] << " <numOfString> <NumOfThreads>\n";
-        return 1;
-    }
+    // if (argc != 3) {
+    //     cerr << "Usage: " << argv[0] << " <numOfString> <NumOfThreads>\n";
+    //     return 1;
+    // }
 
-    //int num_tasks = stoi(argv[1]);
+    // int num_tasks = stoi(argv[1]);
     ifstream request_file;
-    request_file.open(string(argv[1]) + ".txt", ios::in);
-    int num_threads = stoi(argv[2]);
+    request_file.open("Test/" + string(argv[1]) + ".txt", ios::in);
+    int num_threads, num_tasks;
+    request_file >> num_tasks >> num_threads;
+    // int num_threads = stoi(argv[2]);
 
-    int num_tasks;
-    request_file >> num_tasks;
+    cout << "Test/" + string(argv[0]) + ".txt" << endl;
+    // int num_tasks;
+    // request_file >> num_tasks;
 
     // Create a vector of strings represent for tasks: "Task 1", ..., "Task n"
     // vector<string> v;
@@ -150,15 +153,16 @@ int main(int argc, char *argv[]) {
     //     v.push_back("Task " + to_string(i));
     // }
 
-    //string dir_code = "../Submit/probA_AC.cpp";
-    // Create a thread pool with num_threads threads
+    // string dir_code = "../Submit/probA_AC.cpp";
+    //  Create a thread pool with num_threads threads
     ThreadPool pool(num_threads);
     int time = 0;
     for (int i = 0; i < num_tasks; i++) {
         // sleep until new submit
         int time_arrive;
         request_file >> time_arrive;
-        this_thread::sleep_for(chrono::microseconds(time_arrive - time));
+        cout << time_arrive << '\n';
+        this_thread::sleep_for(chrono::milliseconds(time_arrive - time));
         time = time_arrive;
 
         // problem of submit
@@ -171,12 +175,13 @@ int main(int argc, char *argv[]) {
         request_file >> dir_code;
         dir_code = "../Submit/" + dir_code + ".cpp";
 
-        cout << "Adding task " << problem << " for code " << dir_code << " to the pool at time " << time << endl;
+        cout << "Adding task " << problem << " for code " << dir_code
+             << " to the pool at time " << time << endl;
 
         string exit_code, message;
-        //judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code, message)
-        pool.add_task(bind(judge, i, i, dir_code, exit_code,
-                           message));
+        // judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code,
+        // message)
+        pool.add_task(bind(judge, i, i, dir_code, exit_code, message));
 
         // cout << "================== \n" << exit_code << '\n';
         // pool.add_task(bind(print, ref(v[i])));
