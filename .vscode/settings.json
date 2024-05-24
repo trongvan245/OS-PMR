@@ -143,6 +143,7 @@
     "typeinfo": "cpp",
     "valarray": "cpp",
     "variant": "cpp",
-    "xstring": "cpp"
+    "xstring": "cpp",
+    "filesystem": "cpp"
   }
 }

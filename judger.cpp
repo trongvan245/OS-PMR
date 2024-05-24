@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional> // for std::hash
 #include <iostream>
 #include <string>
 #include <thread>
@@ -34,48 +35,6 @@ bool compile(int task_id, string dir_code) {
     return result == 0;
 }
 
-// void monitorExecution(thread &programThread, atomic<bool> &finished,
-//                       int timeLimit) {
-//     using namespace chrono;
-
-//     // Start the timer
-//     auto start = steady_clock::now();
-
-//     while (true) {
-//         if (finished) {
-//             auto now = steady_clock::now();
-//             auto elapsed = duration_cast<seconds>(now - start).count();
-//             cout << "Program has finished in" << elapsed << '\n';
-//             // Program finished within the time limit
-//             return;
-//         }
-
-//         // Check the elapsed time
-//         auto now = steady_clock::now();
-//         auto elapsed = duration_cast<seconds>(now - start).count();
-
-//         if (elapsed >= timeLimit) {
-//             // Time limit exceeded, terminate the program
-//             cout << elapsed << '\n';
-//             cout << "Time limit exceeded. Terminating the program...\n";
-//             if (programThread.joinable()) {
-//                 // Terminate the external process (this might need adjusting
-//                 // based on the OS)
-//                 // system(
-//                 //     "pkill -f 'your_program_name'"); // This is for
-//                 Unix-like
-//                 //                                      // systems
-//                 // For Windows, you might use something like:
-//                 system("taskkill /F /IM simpleprob.exe");
-//             }
-//             return;
-//         }
-
-//         // Sleep for a short period to avoid busy-waiting
-//         this_thread::sleep_for(milliseconds(100));
-//     }
-// }
-
 void runExternalProgram(const std::string &command,
                         std::atomic<bool> &finished) {
     // Run the command and set finished to true when done
@@ -86,23 +45,11 @@ void runExternalProgram(const std::string &command,
 void runTestCase(const string &input_file, const string &expected_output_file,
                  string &exit_code, int task_id, string INPUT_DIR) {
     // Construct the command to run the participant's executable with the given
-
     string par_output = "output" + to_string(task_id) + ".txt";
     string par_errorlog = "errorlog" + to_string(task_id) + ".txt";
     string par_EXECUTABLE = EXECUTABLE + to_string(task_id);
     string run_command = "./" + par_EXECUTABLE + " < " + INPUT_DIR +
                          input_file + " > " + par_output;
-
-    // Execute the command
-    // int run_result = system(run_command.c_str());
-    // cout << run_command << '\n';
-
-    // Check if the execution was successful
-    // if (run_result != 0) {
-    //     cerr << "Error running " << EXECUTABLE << endl;
-    //     exit_code = "CERR";
-    //     return; // Execution failed
-    // }
 
     int TIME_LIMIT = 2;
 
@@ -147,8 +94,6 @@ void runTestCase(const string &input_file, const string &expected_output_file,
     string diff_command = "diff -w " + par_output + " " + expected_output_file +
                           " > " + par_errorlog;
 
-    // cout << diff_command << '\n';
-
     int diff_result = system(diff_command.c_str()); // Execute the diff command
     exit_code = (diff_result ? "WA" : "AC");
     return; // Return true if diff found no differences, false otherwise
@@ -162,11 +107,8 @@ void runTestCase(const string &input_file, const string &expected_output_file,
  *      Compile Error - CERR
  */
 
-void judge(int task_id, int problem_id, string dir_code, string INPUT_DIR,
-           string OUTPUT_DIR) {
+void judge(int task_id, string dir_code, string INPUT_DIR, string OUTPUT_DIR) {
     if (!compile(task_id, dir_code)) {
-        // exit_code = "CERR";
-        // message = "Compile error";
         cerr << "Compilation failed." << endl;
         return;
     }
@@ -190,18 +132,12 @@ void judge(int task_id, int problem_id, string dir_code, string INPUT_DIR,
             result = exit_code;
             break;
         }
-        // cout << "Task " << task_id << ": " << ++i << ". test is " <<
-        // exit_code
-        //      << '\n';
-        // if (runTestCase(test_case, expected_output_file, exit_code)) {
-        //     cout << ++i << ". Passed TEST " << test_case << endl;
-        // } else {
-        //     cout << ++i << ". Failed TEST " << test_case << endl;
-        // }
     }
 
+    std::hash<std::thread::id> hasher;
+    auto hashed_id = hasher(this_thread::get_id());
     cout << "\n===================================================\n";
-    cout << "Judge ID: " << this_thread::get_id() << endl;
+    cout << "Judge ID: " << hashed_id % 1000 << endl;
     cout << "Task " << task_id << ": " << result << '\n';
     cout << "===================================================\n\n";
     // Cleanup

@@ -53,7 +53,8 @@ class ThreadPool {
     */
     ThreadPool(int num_threads) : stop(false) {
         // set up idle_thread
-        for (int i = 0; i < num_threads; ++i) idle_thread.push_back(true);
+        for (int i = 0; i < num_threads; ++i)
+            idle_thread.push_back(true);
 
         // For each thread, create a lambda function that will keep the
         // thread running
@@ -101,8 +102,8 @@ class ThreadPool {
     }
 
     /*
-    add_task function: add a task (function) to the task queue
-    */
+     * add_task function: add a task (function) to the task queue
+     */
     void add_task(function<void()> task) {
         {
             // Lock the mutex to protect the tasks queue
@@ -123,9 +124,11 @@ class ThreadPool {
     // check if finishing all task
     bool finish_all_tasks() {
         for (bool idle_i : idle_thread) {
-            if (idle_i == false) return false; 
+            if (idle_i == false)
+                return false;
         }
-        if (tasks.empty()) return true;
+        if (tasks.empty())
+            return true;
         return false;
     }
 
@@ -162,20 +165,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // int num_tasks = stoi(argv[1]);
     ifstream request_file;
     request_file.open("Test/" + string(argv[1]) + ".txt", ios::in);
     int num_threads, num_tasks;
     request_file >> num_tasks >> num_threads;
 
-    // int num_threads = stoi(argv[2]);
-
-    // Create a vector of strings represent for tasks: "Task 1", ...,
-    // "Task n" vector<string> v; for (int i = 1; i <= num_tasks; i++) {
-    //     v.push_back("Task " + to_string(i));
-    // }
-
-    // string dir_code = "../Submit/probA_AC.cpp";
     //  Create a thread pool with num_threads threads
     ThreadPool pool(num_threads);
     for (int i = 0; i < num_tasks; i++) {
@@ -208,12 +202,7 @@ int main(int argc, char *argv[]) {
              << " to the pool at time " << time_arrive << endl;
 
         string exit_code, message;
-        // judge(task_id=i, problem_id= ('A', 'B', C',...), dir_code, exit_code,
-        // message)
-        pool.add_task(bind(judge, i, i, dir_code, INPUT_DIR, OUTPUT_DIR));
-
-        // cout << "================== \n" << exit_code << '\n';
-        // pool.add_task(bind(print, ref(v[i])));
+        pool.add_task(bind(judge, i, dir_code, INPUT_DIR, OUTPUT_DIR));
     }
 
     // calculate total time to process all tasks
@@ -221,9 +210,10 @@ int main(int argc, char *argv[]) {
         if (pool.finish_all_tasks()) {
             auto end_time = std::chrono::high_resolution_clock::now();
             int total_time = chrono::duration_cast<chrono::milliseconds>(
-                              end_time - start_time)
-                              .count();
-            cout << "the OJ system takes " << total_time << " milliseconds to finish\n";
+                                 end_time - start_time)
+                                 .count();
+            cout << "the OJ system takes " << total_time
+                 << " milliseconds to finish\n";
             break;
         }
         this_thread::sleep_for(chrono::milliseconds(100));
